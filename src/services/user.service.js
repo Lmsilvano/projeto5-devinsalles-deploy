@@ -20,6 +20,7 @@ module.exports = {
         query.name = { [Op.iLike]: `%${name}%` };
       }
 
+
       if (birth_date_min) {
         const vefifyDateBirthMin = verifyDate(birth_date_min);
 
@@ -58,13 +59,22 @@ module.exports = {
       }
 
       const ageValidation = verifyAge(stringToDate(birth_date));
+      const emailValidation = await User.findAll({
+        where: {
+          email
+        }
+      });
+      if (emailValidation.length > 0) {
+
+        throw new Error("Email já cadastrado!")
+      }
 
       if (!ageValidation) {
         throw new Error("É necessário que o usuário seja maior de idade");
       }
 
       if (!roles || roles.length === 0) {
-        throw new Error("Precisa ser enviado pelo menos um rol");
+        throw new Error("Precisa ser enviado pelo menos um role");
       }
 
       const responseRoles = await Role.findAll({
@@ -112,6 +122,7 @@ module.exports = {
 
       return { id: user.id };
     } catch (error) {
+
       return { error: error.message };
     }
   },
