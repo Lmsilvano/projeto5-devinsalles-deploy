@@ -8,7 +8,7 @@ const {
   getProductById,
   countSalesByProductId,
 } = require("../services/product.service");
-
+const logger = require('../config/logger');
 module.exports = {
   async index(req, res) {
     /* #swagger.tags = ['Produto']
@@ -37,8 +37,11 @@ module.exports = {
 
       const products = await indexProductService(name, price_min, price_max);
 
-      if (products.length === 0) return res.status(204).send();
-
+      if (products.length === 0) {
+        logger.info(`Nenhum produto encontrado`);
+        return res.status(204).send();
+      }
+      logger.info(`Listando todos os produtos. ${products.length} produtos encontrados`);
       return res.status(200).send({ products });
 
       /* #swagger.responses[200] = { 
@@ -48,6 +51,7 @@ module.exports = {
 
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao listar produtos: ${message.message}`);
       return res.status(400).send(message);
     }
   },
@@ -72,7 +76,7 @@ module.exports = {
               schema: { $ref: "#/definitions/ResProduct" },
               description: "Produto criado com sucesso!" 
        } */
-
+      logger.info(`Criando um novo produto: ${product.name}`);
       return res.status(200).send({
         message: "Produto criado com sucesso!",
         novoProduto: {
@@ -82,6 +86,7 @@ module.exports = {
       });
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao criar um novo produto: ${message.message}`);
       return res.status(400).send(message);
     }
   },
@@ -124,12 +129,14 @@ module.exports = {
       );
 
       if (!product) {
+        logger.error(`Produto não encontrado para atualização: ${product_id}`);
         return res.status(404).send({ message: "Produto não encontrado." });
       }
-
+      logger.info(`Atualizando um produto: ${product.name}`);
       return res.status(204).send();
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao atualizar um produto: ${message.message}`);
       return res.status(400).send(message);
     }
   },
@@ -161,14 +168,16 @@ module.exports = {
       );
 
       if (!updatedProduct) {
+        logger.error(`Produto não encontrado para atualização: ${id}`);
         return res
           .status(404)
           .send({ message: `Não existe produto com o id ${id}` });
       }
-
+      logger.info(`Atualizando uma propriedade do produto: ${updatedProduct.name}`);
       return res.status(204).send();
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao atualizar uma propriedade do produto: ${message.message}`);
       return res.status(400).send(message);
     }
   },
@@ -192,13 +201,15 @@ module.exports = {
       }
       const product = await getProductById(Number(id));
       if (!product) {
+        logger.error(`Produto não encontrado para deleção: ${id}`);
         return res.status(404).send({ message: "Produto não encontrado." });
       }
       await product.destroy();
-
+      logger.info(`Deletando um produto: ${product.name}`);
       return res.status(204).send();
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao deletar um produto: ${message.message}`);
       return res.status(400).send(message);
     }
   },

@@ -1,6 +1,6 @@
 const { validateErrors } = require("../utils/functions");
 const UserServices = require("../services/user.service");
-
+const logger = require('../config/logger');
 
 module.exports = {
   async create(req, res) {
@@ -40,6 +40,9 @@ module.exports = {
           }
         }
       */
+      if (user.error) throw new Error(user.error);
+
+      logger.info(` Usuário ${name} criado com sucesso.`)
       return res.status(201).send({ response: user.id });
     } catch (error) {
       const message = validateErrors(error);
@@ -50,6 +53,7 @@ module.exports = {
                 }
               }
             */
+      logger.error(`Erro ao criar um novo usuário. ${message.message}`)
       return res.status(400).send(message);
     }
   },
@@ -82,10 +86,12 @@ module.exports = {
       const token = await UserServices.beginSession(email, password);
 
       if (token.error) throw new Error(token.error);
-
+      const userName = UserServices.getUsers()
+      logger.info(`Usuário ${email} logado com sucesso.`)
       return res.status(201).send({ token: token });
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao logar o usuário. ${message.message}`)
       return res.status(400).send(message);
     }
   },
@@ -120,11 +126,13 @@ module.exports = {
         birth_date_min,
         birth_date_max
       );
+
       if (users.error) {
         throw new Error(users.error);
       }
 
       if (users.length === 0) {
+        logger.info(`Nenhum usuário correspondeu aos filtros da busca.`)
         return res.status(204).send();
       }
       /*
@@ -134,7 +142,8 @@ module.exports = {
         }
       }
       */
-
+      logger.info(`Usuários buscados com sucesso.`)
+      console.log(bsakdasd)
       return res.status(200).send({ users });
     } catch (error) {
       const message = validateErrors(error);
@@ -145,7 +154,7 @@ module.exports = {
        }
      }
      */
-
+      logger.error(`Erro ao buscar usuários. ${message.message}`)
       return res.status(400).send(message);
     }
   },
@@ -187,9 +196,10 @@ module.exports = {
       if (message.error) {
         throw new Error(message.error);
       }
-
+      logger.info(`Usuário ${message.message} deletado com sucesso.`)
       return res.status(200).json({ message });
     } catch (error) {
+      logger.error(`Erro ao deletar usuário. ${error}`)
       return res.status(400).json({ error: error.message });
     }
   },
