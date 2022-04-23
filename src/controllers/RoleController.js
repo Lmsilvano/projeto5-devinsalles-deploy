@@ -1,7 +1,7 @@
 const Role = require("../models/Role");
 const Permission = require("../models/Permission");
 const { validateErrors } = require("../utils/functions");
-
+const logger = require('../config/logger');
 module.exports = {
   async index(req, res) {
     /*
@@ -28,9 +28,11 @@ module.exports = {
           },
         ],
       });
+      logger.info(`Listando todos os cargos`);
       return res.status(200).send({ roles });
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao listar cargos: ${message}`);
       return res.status(400).send(message);
     }
   },
@@ -72,12 +74,14 @@ module.exports = {
           await role.addPermissions(permissionsEntity);
         }
       }
-         /* #swagger.responses[200] = { 
-            schema: { $ref: "#/definitions/ResRole" }
-        } */
+      /* #swagger.responses[200] = { 
+         schema: { $ref: "#/definitions/ResRole" }
+     } */
+      logger.info(`Criando um novo cargo: ${description}`);
       return res.status(200).send({ message: "Cargo criado com sucesso." });
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao criar um novo cargo: ${message.message}`);
       return res.status(400).send(message);
     }
   },
@@ -129,12 +133,13 @@ module.exports = {
       /* #swagger.responses[200] = { 
                   schema: {"message": "Permissões vinculadas com sucesso."}
               } */
-
+      logger.info(`Adicionando permissões ao cargo: ${role.description}`);
       return res
         .status(200)
         .send({ message: "Permissões vinculadas com sucesso." });
     } catch (error) {
       const message = validateErrors(error);
+      logger.error(`Erro ao adicionar permissões ao cargo: ${message.message}`);
       return res.status(400).send(message);
     }
   }
